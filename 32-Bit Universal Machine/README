@@ -1,0 +1,140 @@
+– Identifies you and your programming partner by name
+    
+    Bradley Chao (bchao02) and Matthew Soto (msoto02)
+
+– Acknowledges help you may have received from or collaborative work you may 
+have undertaken with others
+
+    TA help and class slides
+
+– Identifies what has been correctly implemented and what has not
+
+    We have implemented instruction_set, run_UM, and the universal machine
+    which we believe to have functionally passed our testing
+
+– Briefly enumerates any significant departures from your design
+
+    Some departures from our orginal design is we no longer have
+    a memory.c because we incoporated it with our universal_machone module
+
+– Succinctly describes the architecture of your system. Identify the modules 
+  used, what abstractions they implement, what secrets they know, and how they
+  relate to one another. Avoid narrative descriptions of the behavior of 
+  particular modules.
+
+universal_machine module: 
+We stored all the data of the virtual machine i.e. registers and memory in the
+universal machine data structure. This module knows the secrets/details of how
+data is managed and querying/modifying/mapping its data members. This serves as
+its own abstract data type that can be used by a greater variety of clients.
+
+instruction_set module:
+The instruction_set module serves as the primary client of the UM ADT and knows
+the secrets/details of how to execute each word instruction by calling public
+methods of the UM ADT.
+
+run_UM module:
+This module serves as a UM loader and executor. The loader abstracts unnecessary
+details such as what file the user provided and the executor abstracts the
+details of reading the binary data of the file and transforming it into a 32-bit
+word instruction
+
+– Explains how long it takes your UM to execute 50 million instructions, and 
+  how you know
+
+Sandmark, which was 11420 instruction, took ~235 seconds. Since Sandmark is
+fairly comprehensive in using all the operations, we can assume the average of 
+48.6 instructions/second should be fairly close to the true parameter of our
+virtual machine's speed. Assuming time scales linearly, we can predict that
+50 million instructions would take around 2,429,787,234 seconds which is 
+around 77 years.
+
+– Mentions each UM unit test (from UMTESTS) by name, explaining what each one 
+  tests and how
+
+Note: Some of our preliminary testing was done in tester.c because we it allowed
+us to access the secrets of the UM ADT and instruction set methods to debug.
+
+Start UM Tests:
+
+(1)
+build_IO.um: Tests basic input and output by taking in user input and outputting
+the result. A basic test that will build up to the cat.um test.
+
+(2)
+build_cond_move.um: We tested both cases of conditional move -- the function
+is an effective bypass when register C is 0. We verified that r1's value of 68
+or ASCII equivalent 'D' remained unchanged in this case. To test the second
+case we made register C a nonzero value and printed the values. We verified
+that the value of the first register had been replaced by the second.
+
+(3) (4 Unit Tests in One) 
+build_arithmetic.um: Comprehensive arithmetic tests addition, multiplication, &
+division and prints the corresponding ASCII decimal to char result. We also
+scaling past the limits of 32-bit integers by multiplying big numbers together
+and checking that the modulo operand kept register values within the appropriate
+range.
+
+(4)
+build_NAND.um: Takes the negation after the AND of zeros which produces the
+maximum unsigned 32-bit integer value. To make output legible, we added 50
+which yields 49 which is equivalent to INTMAX + 50 in mod 2^32 - 1. We verified
+output to be ASCII Char 1.
+
+(5)
+build_map.um: Tests basic mapping by loading value into registers and 
+then mapping a new segment at index 1 with size 15. We then store value of 55
+in segment 1 offset 4 and output the result for consistency, verifying that a
+new segment had indeed been mapped. Otherwise, we would have had a checked 
+runtime error. We then mapped another segment and used a similar process to 
+verify that the value placed in segment 2 offset 2 was stored properly.
+
+(6)
+build_unmap.um: We tested our unmapping function by mapping two segments:
+segment 1 and segment 2. We then outputtted their indexs by adding by 48 to
+print 1 and 2 respectively. We then unmapped these same two segments. 
+Originally, our tests also contained a case where we tested that we couldn't
+access unmapped segments which induced a checked runtime error on our 
+implementation but we have since removed it to maintain the 'validity' of this
+unit test.
+
+(7)
+build_store_load.um: This test maps two new segments with IDs of 1 and 2 
+respectively. Decimal value 35 is stored in offset 9 in both segments and then
+loaded back into the registers and the output is verified to be '#' which has
+an ASCII decimal value of 35.
+
+(8)
+build_load_program.um: 
+Load program is often used as a loop function since it redirects the program
+counter to the value of register C within segment zero. This tests that the
+program counter can be directed towards the halt function to prevent an
+infinite loop from occurring. Originally, our test contained a case where we 
+tested that we couldn't move the program counter outside the bounds of segment 
+zero but we have since removed it to maintain the 'validity' of this unit test.
+Furthermore, we found that testing whether a new segment was mapped was easier
+in tester.c as mapping the segment was limited to 25-bits.
+
+(9)
+build_loop.um:
+This function is aimed at testing looping capabilities. r1 is set to 1 and 
+it doubles every cycle until it's greater than or equal to 10 in which case
+11 is conditionally moved into r5, allowing load_program to redirect the
+program counter to the halt function.
+
+(10)
+build_miscellaneous.um:
+Blends a variety of functions to verify whether certain functions interfere
+with the functionality of another. 
+
+Time Questions:
+
+Says approximately how many hours you have spent analyzing the assignment
+8 Hours
+
+Says approximately how many hours you have spent preparing your design
+5 Hours
+
+Says approximately how many hours you have spent solving the problems after
+  your analysis
+20 Hours

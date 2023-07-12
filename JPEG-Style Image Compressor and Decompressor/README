@@ -1,0 +1,93 @@
++-----------------------------------------------------------------------------+
+                                 HW3 - README                                  
+           Bradley Chao (bchao02) and Kevin Prou (kprou01)               
++-----------------------------------------------------------------------------+
+
+
++-----------------------------------------------------------------------------+
+                                Architecture
++-----------------------------------------------------------------------------+
+
+40image: Handles command line input and offers -c and -d flag for compressing
+         and decompressing images
+
+a2plain: Subclass of A2methods which offer plain methods. Namely, we made use
+         of the row major mapping function
+
+uarray2: Implementation of normal 2D array
+
+a2blocked: Subclass of A2methods which offer block methods. Namely, we made use
+           of the block major mapping functions
+
+uarray2b: Implementation of blocked array 
+
+bitpack: Handles the bitwise operations and allows client to modify unsigned
+         and signed integers through these operations
+
+ppmdiff: This program was used to calculate an aggregate square difference 
+         between 2 ppm images. Primarily used to quantify how different 2 
+         images were following compression and then decompression
+
+test_bitpack: This program was used to unit test our Bitpack module
+
+(Key Program Modules In Compression Order)
+General intuition: We believed our program would be more modular and easier
+to debug if we had a separate module/data structure that stores the transformed
+data at each step. 
+
+For compression, we start by reading the ppm into memory as a 
+2D array of RGB structs (red, green, blue)
+2D array of CV structs (Y, Pb, Pa)
+2D array of Word structs (a, b, c, d, Pb, Pa)
+2D array of 64-bit codewords which are written to memory in 32 bits
+
+Decompression walks in reverse
+
+file_IO: This module is the interface between the file and program memory and
+         is responsible for reading PPMs/binary files into memory as well as
+         writing the data to output files.  
+
+colorspaces: This module is the interface between the 2D array of RGB structs
+             and 2D array of CV structs. Contains the functions for converting 
+             between the two data types. A CV struct contains the Y (lumina),
+             and Pb and Pa chroma values which is a one-to-one correspondence 
+             with each RGB struct.
+
+word: This module is the interface between the 2D array of CV structs and 2D
+array of Word structs. Contains the functions for converting between the 
+two data types. A Word struct contains the quantized a, b, c, d, Pb avg, and
+Pr avg member variables. Each Word represents 4 CV structs in a 2 x 2 proximity
+block
+
+pack: This module is the interface between the 2D array of Word structs and 
+2D array of packed 64-bit integers. Contains the functions for converting 
+between the two data types. This module interacts with the bitpack module
+and calls its functions to pack the integers with bitwise operations.
+
++-----------------------------------------------------------------------------+
+                                Acknowledgments
++-----------------------------------------------------------------------------+
+
+We received help from Alec Xu (the GOAT) during Office Hours.
+
++-----------------------------------------------------------------------------+
+            What Has Been Correctly Implemented and What Has Not
++-----------------------------------------------------------------------------+
+ 
+We believe everything has been correctly implemented to the best
+of our knowledge.  We continously performed incremental testing
+as we finished the corresponding compression and decompression
+modules. In addition to that, we doubled check with ppmdiff.
+
++-----------------------------------------------------------------------------+
+                                Time it Took
++-----------------------------------------------------------------------------+
+We spent about 10 hours analyzing the problems that were posed
+in the assignment 
+ 
+We spent about 30 hours solving the problems after
+our analysis.
+ 
+
+ 
+

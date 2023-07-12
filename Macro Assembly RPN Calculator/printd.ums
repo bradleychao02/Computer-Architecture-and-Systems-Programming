@@ -1,0 +1,82 @@
+.section init
+        .temps r6, r7
+        r0 := 0
+        .zero r0
+
+#r3 is our value stack, r2 is call stack
+# we can't use r6 and r7 typically if we were to call macro since those are used
+.section text
+
+        print_number:
+                # Before this, the parameter is pushed to the call stack
+
+                # Push return address to call stack
+                push r1 on stack r2
+                
+                # Push involatiles r3 and r4 to the call stack
+                push r3 on stack r2
+                push r4 on stack r2
+
+                # Set r3 to be equal to the parameter
+                r3 := m[r0][r2 + 3]     
+                
+                #Set r1 to be the base of incoming stack sequence
+                r1 := r2
+                
+                output ">>> "
+
+                # Check different cases
+                if (r3 == 0) goto print_zero
+                
+                # Temporarily store 2^31 
+                r5 := 2147483648
+                if (r3 == r5) goto print_most_negative using r5
+
+                if (r3 >s 0) goto push_digits_phase using r5
+                # This is omitted in the positive case 
+                output "-"
+
+                # Negative becomes absolute value
+                r3 := -r3
+        
+        push_digits_phase:
+                # r4 becomes the ones digit of r3 
+
+                r4 := r3 mod 10
+                # Value of r4 is pushed onto the stack 
+                push r4 on stack r2
+                # Effectively remove the least significant digit
+                r3 := r3 / 10
+                # Recursive case if there still digits in r4 to be pushed
+                if (r3 != 0) goto push_digits_phase
+
+        pop_digits_phase:
+                # output "\nim here\n"
+                # R4 is the next available digit on the call stack
+
+                # If our current stack pointer is equal to the base
+                if (r2 == r1) goto finish using r5
+
+                pop r4 off stack r2
+
+                # Output the digit and recurse
+                r4 := r4 + '0'
+                output r4
+                goto pop_digits_phase
+
+        finish:
+                output "\n"
+                # Return involatiles r3 and r4 back to their original states
+                pop r4 off stack r2
+                pop r3 off stack r2
+                # Pop r1's original value to r5 which is the return address
+                pop r5 off stack r2
+                goto r5
+
+        print_zero:
+                output "0"
+                goto finish
+
+        print_most_negative:
+                output "-2147483648"
+                goto finish

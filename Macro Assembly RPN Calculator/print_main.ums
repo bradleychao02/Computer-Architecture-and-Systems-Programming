@@ -1,0 +1,17 @@
+.section init
+        .temps r6, r7
+        r0 := 0
+        .zero r0
+
+        output "hello world\n"
+
+        goto main linking r1
+        halt
+
+.section text
+        main:
+                r5 := -123
+                push r5 on stack r2
+                goto print_number linking r1
+                output "\n"
+                halt

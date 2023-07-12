@@ -1,0 +1,87 @@
+Bradley Chao and Matthew Soto README
+
+Received help from a couple of TAs
+
+Assembly Analysis:
+The loading phase is a minor spot to analyze since midmark's loading phase is
+larger in proportion to the total program size relative to the other um files.
+However, the focal point is in the main command loop.
+
+Strange Behavior Noted:
+file_info.st_size / 4 vs. files_info.st_size >> 2 (line 57)
+Although line 57 is only run once. For some reason, we found 
+files_info.st_size / 4 to be faster than files_info.st_size >> 2 despite 
+containing identical assembly code. We are not entirely sure why this is the 
+case and asked a couple of TAs for help. They weren’t entirely sure either and 
+said it was probably a quirk of the compiler. Thus, the assembly code cannot 
+be optimized any further than how it is currently.
+
+Side Note:
+We wonder whether it’s faster to “zero a register” via running xor on itself 
+or moving zero in explicitly. Most likely it’s xor since we compiled with -O2 
+and that’s what they like to use. However, if it was faster to just move zero 
+in explicitly we would just go with that. All in all, this should not be 
+significant because it’s only called in a few cases in our main hotspot.
+
+Observation 1:
+On lines 91 and 96 when we first call malloc we move $0x8 = 8 bytes into 
+%edi which is the parameter used for the malloc function. Perhaps we could 
+make this a higher number since there are thousands and thousands of calls 
+to the map function as measured by our frequency table. 
+
+After kcachegrinding, we recognized that our hotspot was in the command loop.
+Currently, we store segment zero as index 0 in the segments spine. 
+
+Observation 2:
+At the beginning of the command while loop, we update our local register 
+variable containing the address of segment zero to the current segment zero. 
+We recognize that this is not super efficient as segment zero only changes 
+during the load program command and we could probably shave off a couple of 
+milliseconds if we replaced 
+
+C1: segment_zero = segments[0]
+Assembly 1: mov (%r12), %rbp
+
+C2: UM_instruction word = segment_zero[program_counter + 1]
+Assembly 2: mov 0x4($rbp), %ecx
+
+If we were to omit the intermediate %rbp step, we would probably achieve a 
+small boost given the fact that the compiler didn’t do this for us and 
+kcachegrind tells us that word = segment_zero[program_counter + 1] is the 
+second costliest operation in aggregate.
+
+Observation 3:
+We recognize that we can optimize our if/else logic chain when determining 
+which block of code to jump to when comparing the operation code constants. 
+Since a conditional is faster than a jump table, it might be more efficient 
+to have a binary conditional if/else block that separates the most common case
+of a load_val from non load_val commands since the assembly will not have to 
+refer to a jump table. Although this is a relatively minute change, this 
+would still be a change in a focal point of the program which would lead to a 
+fairly significant performance boost.
+
+Observation 4:
+Within the hotspot command loop, certain commands had a tendency to take
+longer than others when multiplied by their call frequency. For instance,
+segmented store and load were especially heavy since they were called
+many many times on top of the fact that there is a lot of bitwise
+computations and pointer chasing. However, we do not believe this can
+be optimized further since we are already using bitwise operations
+which are the fastest operations a computer can do. We cannot control
+the fact that midmark.um calls these commands most frequently. 
+The assembly code matches what we expect to do in that it utilizes
+shifts and movs
+
+Examples of commands that could be further optimized would be division.
+Upon analyzing the assembly code, we realized that the compiler optimizes
+multiplication to use mult instead of left shifts. However, we are making 
+the call divl 0x20(%rsp, %rcx, 4) which is an expensive operation as 
+opposed to right shifting. It might be difficult to implement these right 
+shifts since we are not necessarily scaling by a factor of 2 whereas 
+shifting multiples or divides the decimal equivalent by a factor of 2. 
+We might be forced to use divl in which case this line of assembly cannot 
+be further optimized.
+
+Hours Spent: 30
+labnotes.pdf submitted on gradescope
+
